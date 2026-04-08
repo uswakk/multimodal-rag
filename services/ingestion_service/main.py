@@ -2,7 +2,6 @@ from fastapi import FastAPI, UploadFile, File
 import os
 import requests
 from .pdf_parser import extract_pdf_data
-from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
@@ -18,7 +17,7 @@ os.makedirs(IMAGE_DIR, exist_ok=True)
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
     """
-    Upload a PDF → extract text + images → send chunks to embedding service
+    Upload PDF → extract text + images → send chunks to embedding service → store in Qdrant
     """
 
     try:
@@ -31,31 +30,37 @@ async def upload_pdf(file: UploadFile = File(...)):
         # --- Extract text + images ---
         text_data, image_paths = extract_pdf_data(file_path, IMAGE_DIR)
 
-        # --- Extract only text for embedding ---
+        # --- Prepare text + metadata ---
         texts = [item["text"] for item in text_data]
 
-        # --- Call embedding service ---
+        metadata = [
+            {
+                "page": item["page"],
+                "chunk_id": item["chunk_id"],
+                "source": item["source"]
+            }
+            for item in text_data
+        ]
+
+        # --- Call embedding + storage service ---
         response = requests.post(
             EMBEDDING_SERVICE_URL,
-            json={"texts": texts}
+            json={
+                "texts": texts,
+                "metadata": metadata
+            }
         )
 
-        # Check if request failed
+        # --- Handle failure ---
         if response.status_code != 200:
             return {
                 "error": "Embedding service failed",
                 "details": response.text
             }
 
-        embeddings = response.json()["embeddings"]
-
-        # --- Attach embeddings back ---
-        for i, item in enumerate(text_data):
-            item["embedding"] = embeddings[i]
-
-        # --- Return summary (not full data to avoid overload) ---
+        # --- Success response ---
         return {
-            "message": "PDF processed successfully",
+            "message": "PDF processed and stored in vector DB successfully",
             "pages_processed": len(set([item["page"] for item in text_data])),
             "total_chunks": len(text_data),
             "images_saved": len(image_paths)
