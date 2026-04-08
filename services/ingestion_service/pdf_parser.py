@@ -1,39 +1,44 @@
-import fitz  # PyMuPDF
+import fitz
 import os
+from .chunker import chunk_text
+
 
 def extract_pdf_data(pdf_path: str, image_output_dir: str):
-    """
-    Extract text and images from a PDF.
 
-    Returns:
-        text_data: list of dicts with page number + text
-        image_paths: list of saved image file paths
-    """
-
-    # Open PDF
     doc = fitz.open(pdf_path)
 
     text_data = []
     image_paths = []
 
-    # Create image directory if not exists
     os.makedirs(image_output_dir, exist_ok=True)
 
-    # Loop through each page
+    pdf_name = os.path.basename(pdf_path).split(".")[0]
+
     for page_number in range(len(doc)):
         page = doc[page_number]
 
         # --- Extract Text ---
-        text = page.get_text()
+        text = page.get_text().strip()
 
-        text_data.append({
-            "page": page_number + 1,
-            "text": text
-        })
+        if not text:
+            continue
 
-        # --- Extract Page Image (VERY IMPORTANT) ---
+        chunks = chunk_text(text)
+
+        for i, chunk in enumerate(chunks):
+            text_data.append({
+                "page": page_number + 1,
+                "chunk_id": i,
+                "text": chunk,
+                "source": pdf_name
+            })
+
+        # --- Extract Image ---
         pix = page.get_pixmap()
-        image_path = os.path.join(image_output_dir, f"page_{page_number+1}.png")
+        image_path = os.path.join(
+            image_output_dir,
+            f"{pdf_name}_page_{page_number+1}.png"
+        )
         pix.save(image_path)
 
         image_paths.append(image_path)
