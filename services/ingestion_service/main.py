@@ -1,54 +1,67 @@
 from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import HTMLResponse
 import os
+import requests
 from .pdf_parser import extract_pdf_data
+from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
 UPLOAD_DIR = "data/raw_pdfs"
 IMAGE_DIR = "data/images"
 
+EMBEDDING_SERVICE_URL = "http://localhost:8002/embed"
+
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(IMAGE_DIR, exist_ok=True)
-
-@app.get("/")
-async def root():
-    return {"message": "Welcome to the PDF Ingestion Service"}
-
-@app.get("/upload")
-async def upload_form():
-    return HTMLResponse(
-        """
-        <html>
-            <body>
-                <h1>Upload PDF</h1>
-                <form action="/upload" enctype="multipart/form-data" method="post">
-                    <input type="file" name="file" accept="application/pdf" required />
-                    <button type="submit">Upload PDF</button>
-                </form>
-            </body>
-        </html>
-        """
-    )
 
 
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
     """
-    Upload a PDF and process it
+    Upload a PDF → extract text + images → send chunks to embedding service
     """
 
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    try:
+        # --- Save file ---
+        file_path = os.path.join(UPLOAD_DIR, file.filename)
 
-    # Save uploaded file
-    with open(file_path, "wb") as f:
-        f.write(await file.read())
+        with open(file_path, "wb") as f:
+            f.write(await file.read())
 
-    # Extract data
-    text_data, image_paths = extract_pdf_data(file_path, IMAGE_DIR)
+        # --- Extract text + images ---
+        text_data, image_paths = extract_pdf_data(file_path, IMAGE_DIR)
 
-    return {
-        "message": "PDF processed successfully",
-        "pages": len(text_data),
-        "images_saved": len(image_paths)
-    }
+        # --- Extract only text for embedding ---
+        texts = [item["text"] for item in text_data]
+
+        # --- Call embedding service ---
+        response = requests.post(
+            EMBEDDING_SERVICE_URL,
+            json={"texts": texts}
+        )
+
+        # Check if request failed
+        if response.status_code != 200:
+            return {
+                "error": "Embedding service failed",
+                "details": response.text
+            }
+
+        embeddings = response.json()["embeddings"]
+
+        # --- Attach embeddings back ---
+        for i, item in enumerate(text_data):
+            item["embedding"] = embeddings[i]
+
+        # --- Return summary (not full data to avoid overload) ---
+        return {
+            "message": "PDF processed successfully",
+            "pages_processed": len(set([item["page"] for item in text_data])),
+            "total_chunks": len(text_data),
+            "images_saved": len(image_paths)
+        }
+
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
