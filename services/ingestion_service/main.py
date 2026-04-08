@@ -11,6 +11,9 @@ IMAGE_DIR = "data/images"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(IMAGE_DIR, exist_ok=True)
 
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the PDF Ingestion Service"}
 
 @app.get("/upload")
 async def upload_form():
