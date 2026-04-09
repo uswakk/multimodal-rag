@@ -12,11 +12,9 @@ def create_collection(collection_name: str, vector_size: int):
         vectors_config=VectorParams(
             size=vector_size,
             distance=Distance.COSINE
-        ),
-        optimizer_config={
-            "indexing_threshold": 0  # 🔥 FORCE INDEXING
-        }
+        )
     )
+
 
 def store_embeddings(collection_name: str, text_data: list):
     points = []
