@@ -8,10 +8,15 @@ app = FastAPI()
 UPLOAD_DIR = "data/raw_pdfs"
 IMAGE_DIR = "data/images"
 
-EMBEDDING_SERVICE_URL = "http://localhost:8002/embed"
-
+TEXT_SERVICE_URL = os.getenv("TEXT_SERVICE_URL", "http://localhost:8002/embed")
+VISUAL_SERVICE_URL = os.getenv("VISUAL_SERVICE_URL", "http://localhost:8003/embed-images")
+ 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(IMAGE_DIR, exist_ok=True)
+
+print(f"Ingestion Service started.")
+print(f"Target Text Service: {TEXT_SERVICE_URL}")
+print(f"Target Visual Service: {VISUAL_SERVICE_URL}")
 
 
 @app.post("/upload")
@@ -28,7 +33,7 @@ async def upload_pdf(file: UploadFile = File(...)):
             f.write(await file.read())
 
         # --- Extract text + images ---
-        text_data, image_paths = extract_pdf_data(file_path, IMAGE_DIR)
+        text_data, image_data = extract_pdf_data(file_path, IMAGE_DIR)
 
         # --- Prepare text + metadata ---
         texts = [item["text"] for item in text_data]
@@ -42,31 +47,72 @@ async def upload_pdf(file: UploadFile = File(...)):
             for item in text_data
         ]
 
-        # --- Call embedding + storage service ---
-        response = requests.post(
-            EMBEDDING_SERVICE_URL,
-            json={
-                "texts": texts,
-                "metadata": metadata
-            }
-        )
+        # --- Call embedding services ---
+        errors = []
+        unique_pages = sorted(list(set([item["page"] for item in text_data])))
 
-        # --- Handle failure ---
-        if response.status_code != 200:
+        # 1. Text Service
+        if texts:
+            try:
+                text_response = requests.post(
+                    TEXT_SERVICE_URL,
+                    json={
+                        "texts": texts,
+                        "metadata": metadata
+                    },
+                    timeout=60
+                )
+                if text_response.status_code != 200:
+                    errors.append(f"Text service error ({text_response.status_code}): {text_response.text}")
+            except requests.exceptions.RequestException as e:
+                errors.append(f"Text service connection failed: {str(e)}")
+
+        # 2. Visual Service
+        if image_data:
+            image_paths = [item["image_path"] for item in image_data]
+            image_meta = [
+                {"page": item["page"], "source": item["source"]} 
+                for item in image_data
+            ]
+            
+            try:
+                visual_response = requests.post(
+                    VISUAL_SERVICE_URL,
+                    json={
+                        "image_paths": image_paths,
+                        "metadata": image_meta
+                    },
+                    timeout=60
+                )
+                if visual_response.status_code != 200:
+                    errors.append(f"Visual service error ({visual_response.status_code}): {visual_response.text}")
+            except requests.exceptions.RequestException as e:
+                errors.append(f"Visual service connection failed: {str(e)}")
+
+        # --- Check for errors ---
+        if errors:
             return {
-                "error": "Embedding service failed",
-                "details": response.text
+                "status": "partial_failure" if len(errors) < (2 if image_data else 1) else "failure",
+                "message": "Some services failed during processing",
+                "errors": errors,
+                "pages_processed": len(unique_pages),
+                "total_chunks": len(text_data),
+                "images_saved": len(image_data)
             }
 
         # --- Success response ---
         return {
+            "status": "success",
             "message": "PDF processed and stored in vector DB successfully",
-            "pages_processed": len(set([item["page"] for item in text_data])),
+            "pages_processed": len(unique_pages),
             "total_chunks": len(text_data),
-            "images_saved": len(image_paths)
+            "images_saved": len(image_data)
         }
 
     except Exception as e:
+        import traceback
+        print(traceback.format_exc())
         return {
+            "status": "error",
             "error": str(e)
         }
