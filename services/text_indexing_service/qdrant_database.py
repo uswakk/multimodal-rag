@@ -1,9 +1,10 @@
+import os
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance
 from qdrant_client.models import PointStruct
 
 client = QdrantClient(
-    url="http://localhost:6333"
+    url=os.getenv("QDRANT_URL", "http://localhost:6333")
 )
 
 def create_collection(collection_name: str, vector_size: int):
