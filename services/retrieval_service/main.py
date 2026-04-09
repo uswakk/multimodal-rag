@@ -22,12 +22,12 @@ def query(request: QueryRequest):
 
     # Step 2: search images
     #temporary removing it so that i can test text retrieval first
-    #image_results = search_images(query, request.top_k)
+    image_results = search_images(query, request.top_k)
 
     # Step 3: fuse
-    #fused = fuse_results(text_results, image_results)
+    fused = fuse_results(text_results, image_results)
 
     return {
         "query": request.query,
-        "results": text_results
+        "results": fused
     }
