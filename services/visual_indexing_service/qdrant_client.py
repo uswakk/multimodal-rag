@@ -24,6 +24,7 @@ def create_collection(vector_size=512):
 
 def upload_embeddings(embeddings, image_paths, metadata):
     import numpy as np
+    import uuid
     from qdrant_client.models import PointStruct
     points = []
 
@@ -32,7 +33,7 @@ def upload_embeddings(embeddings, image_paths, metadata):
         vector = np.array(emb).flatten().tolist()
         points.append(
             PointStruct(
-                id=i,
+                id=str(uuid.uuid4()),
                 vector=vector,
                 payload={
                     "type": "image",

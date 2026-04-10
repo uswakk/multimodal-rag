@@ -14,6 +14,7 @@ services:
       - "8003:8003"
     environment:
       - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
     volumes:
       - ./data:/app/data
     depends_on:
@@ -40,3 +41,39 @@ services:
     depends_on:
       - text_service
       - visual_service
+
+  retrieval_service:
+    build: ./services/retrieval_service
+    ports:
+      - "8004:8004"
+    environment:
+      - QDRANT_URL=http://qdrant:6333
+    depends_on:
+      - qdrant
+
+  generation_service:
+    build: ./services/generation_service
+    ports:
+      - "8005:8005"
+    environment:
+      - MODEL_CACHE_DIR=/models
+    volumes:
+      - ./models_cache:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  api_gateway:
+    build: ./services/api_gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - RETRIEVAL_URL=http://retrieval_service:8004/query
+      - GENERATION_URL=http://generation_service:8005/generate
+    depends_on:
+      - retrieval_service
+      - generation_service

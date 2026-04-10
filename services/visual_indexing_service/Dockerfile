@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install fastapi uvicorn torch torchvision pillow transformers qdrant-client
+RUN pip install fastapi uvicorn torch torchvision pillow transformers qdrant-client numpy
+
+EXPOSE 8003
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8003"]

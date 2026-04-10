@@ -1,7 +1,9 @@
 from qdrant_client import QdrantClient
 from sentence_transformers import SentenceTransformer
 
-client = QdrantClient(host="localhost", port=6333)
+import os
+
+client = QdrantClient(url=os.getenv("QDRANT_URL", "http://localhost:6333"))
 
 model = SentenceTransformer("BAAI/bge-small-en-v1.5")
 

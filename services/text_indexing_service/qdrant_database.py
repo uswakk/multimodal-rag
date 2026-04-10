@@ -8,7 +8,12 @@ client = QdrantClient(
 )
 
 def create_collection(collection_name: str, vector_size: int):
-    client.recreate_collection(
+    collections = client.get_collections().collections
+    if any(c.name == collection_name for c in collections):
+        print(f"Collection '{collection_name}' already exists. Skipping recreation.")
+        return
+        
+    client.create_collection(
         collection_name=collection_name,
         vectors_config=VectorParams(
             size=vector_size,
@@ -18,13 +23,15 @@ def create_collection(collection_name: str, vector_size: int):
 
 
 def store_embeddings(collection_name: str, text_data: list):
+    import uuid
     points = []
 
-    for idx, item in enumerate(text_data):
+    for item in text_data:
+        vector_data = item["embedding"].tolist() if hasattr(item["embedding"], "tolist") else item["embedding"]
         points.append(
             PointStruct(
-                id=idx,
-                vector=item["embedding"],
+                id=str(uuid.uuid4()),
+                vector=vector_data,
                 payload={
                     "text": item["text"],
                     "page": item["page"],

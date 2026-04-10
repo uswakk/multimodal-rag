@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
 
-from .llm_client import generate_answer
-from .prompt_builder import build_prompt
+from llm_client import generate_answer
+from prompt_builder import build_prompt
 
 app = FastAPI()
 

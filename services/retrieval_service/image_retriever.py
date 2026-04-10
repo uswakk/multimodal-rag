@@ -2,7 +2,9 @@ from qdrant_client import QdrantClient
 from transformers import CLIPProcessor, CLIPModel
 import torch
 
-client = QdrantClient(host="localhost", port=6333)
+import os
+
+client = QdrantClient(url=os.getenv("QDRANT_URL", "http://localhost:6333"))
 
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
