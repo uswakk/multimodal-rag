@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install fastapi uvicorn torch torchvision pillow transformers qdrant-client numpy
+RUN pip install --no-cache-dir fastapi uvicorn torch torchvision pillow transformers qdrant-client numpy
 
 EXPOSE 8003
 

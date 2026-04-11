@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install fastapi uvicorn qdrant-client sentence-transformers transformers torch torchvision
+RUN pip install --no-cache-dir fastapi uvicorn qdrant-client sentence-transformers transformers torch torchvision
 
 EXPOSE 8004
 

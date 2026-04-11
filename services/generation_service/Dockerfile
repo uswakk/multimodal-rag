@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install fastapi uvicorn torch torchvision transformers accelerate accelerate bitsandbytes sentencepiece pillow
+RUN pip install --no-cache-dir fastapi uvicorn torch torchvision transformers accelerate accelerate bitsandbytes sentencepiece pillow
 
 EXPOSE 8005
 
