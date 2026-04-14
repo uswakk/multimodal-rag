@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
-from .embedder import embed_text
-from .qdrant_database import create_collection, store_embeddings
+from embedder import embed_text
+from qdrant_database import create_collection, store_embeddings
 
 app = FastAPI()
 

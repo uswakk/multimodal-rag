@@ -3,8 +3,10 @@ import requests
 
 app = FastAPI()
 
-RETRIEVAL_URL = "http://localhost:8004/query"
-GENERATION_URL = "http://localhost:8005/generate"
+import os
+
+RETRIEVAL_URL = os.getenv("RETRIEVAL_URL", "http://localhost:8004/query")
+GENERATION_URL = os.getenv("GENERATION_URL", "http://localhost:8005/generate")
 
 @app.post("/ask")
 def ask_question(query: str):

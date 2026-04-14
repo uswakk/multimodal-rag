@@ -1,6 +1,6 @@
 import fitz
 import os
-from .chunker import chunk_text
+from chunker import chunk_text
 
 
 def extract_pdf_data(pdf_path: str, image_output_dir: str):

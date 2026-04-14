@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 import os
 import requests
-from .pdf_parser import extract_pdf_data
+from pdf_parser import extract_pdf_data
 
 app = FastAPI()
 

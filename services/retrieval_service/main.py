@@ -2,9 +2,9 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
 
-from .text_retriever import search_text
-#from .image_retriever import search_images
-#from .fusion import fuse_results
+from text_retriever import search_text
+from image_retriever import search_images
+from fusion import fuse_results
 
 app = FastAPI()
 
