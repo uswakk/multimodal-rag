@@ -1,25 +1,28 @@
-def build_prompt(query, text_chunks):
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
 
-    context = "\n\n".join([
-        f"[Page {c['page']}] {c['text']}"
-        for c in text_chunks
-    ])
+MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"
 
-    prompt = f"""
-You are a document QA assistant.
+tokenizer = AutoTokenizer.from_pretrained(
+    MODEL_NAME,
+    cache_dir="Z:/models"
+)
 
-Use ONLY the provided context.
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    cache_dir="Z:/models",
+    torch_dtype=torch.float32,
+    low_cpu_mem_usage=True,
+    use_safetensors=True
+).to("cpu")
 
-Context:
-{context}
+def generate_answer(prompt: str):
 
-Question:
-{query}
+    inputs = tokenizer(prompt, return_tensors="pt")
 
-Instructions:
-- Answer clearly
-- Cite page numbers
-- If not found, say "Not enough information"
-"""
+    outputs = model.generate(
+        **inputs,
+        max_new_tokens=100
+    )
 
-    return prompt
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
