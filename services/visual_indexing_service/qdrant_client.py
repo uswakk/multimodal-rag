@@ -1,6 +1,7 @@
 import os
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams
+import uuid
 
 client = QdrantClient(
     host=os.getenv("QDRANT_HOST", "localhost"),
@@ -32,7 +33,7 @@ def upload_embeddings(embeddings, image_paths, metadata):
         vector = np.array(emb).flatten().tolist()
         points.append(
             PointStruct(
-                id=i,
+                id=str(uuid.uuid4()),
                 vector=vector,
                 payload={
                     "type": "image",
@@ -43,4 +44,4 @@ def upload_embeddings(embeddings, image_paths, metadata):
             )
         )
 
-    client.upsert(collection_name=COLLECTION_NAME, points=points)
+    client.upsert(collection_name=COLLECTION_NAME, points=points)
