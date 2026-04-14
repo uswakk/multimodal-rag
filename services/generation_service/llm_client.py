@@ -1,45 +1,52 @@
-from transformers import AutoProcessor, AutoModelForImageTextToText
+from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import os
 
-MODEL_NAME = "Qwen/Qwen2.5-VL-3B-Instruct"
-CACHE_DIR = os.getenv("MODEL_CACHE_DIR", "/models")
+MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"
 
-processor = AutoProcessor.from_pretrained(
+# Optional: use HF token from environment (best practice)
+#using from cli
+#HF_TOKEN = os.getenv("HF_TOKEN")
+
+print("Loading tokenizer...")
+tokenizer = AutoTokenizer.from_pretrained(
     MODEL_NAME,
-    cache_dir=CACHE_DIR
+    cache_dir="Z:/models",
+    token=HF_TOKEN
 )
 
-model = AutoModelForImageTextToText.from_pretrained(
+print("Loading model (this may take some time)...")
+model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
     cache_dir="Z:/models",
     torch_dtype=torch.float32,
-    device_map="auto"
-)
+    low_cpu_mem_usage=True,
+    use_safetensors=True,
+    token=HF_TOKEN
+).to("cpu")
 
-def generate_answer(prompt, image_paths=None):
+print("Model loaded successfully!")
 
-    content = []
 
-    if image_paths:
-        for img in image_paths:
-            content.append({"type": "image", "image": img})
+def generate_answer(prompt: str):
 
-    content.append({"type": "text", "text": prompt})
-
-    messages = [
-        {
-            "role": "user",
-            "content": content
-        }
-    ]
-
-    inputs = processor.apply_chat_template(
-        messages,
-        add_generation_prompt=True,
-        return_tensors="pt"
+    # Tokenize input
+    inputs = tokenizer(
+        prompt,
+        return_tensors="pt",
+        truncation=True,
+        max_length=1024   # prevent huge prompts
     )
 
-    outputs = model.generate(**inputs, max_new_tokens=300)
+    # Generate output
+    outputs = model.generate(
+        **inputs,
+        max_new_tokens=80,
+        do_sample=False,        # deterministic (faster + stable)
+        eos_token_id=tokenizer.eos_token_id
+    )
 
-    return processor.decode(outputs[0], skip_special_tokens=True)
+    # Decode result
+    answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    return answer
