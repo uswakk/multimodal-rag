@@ -1,4 +1,7 @@
 fastapi
 uvicorn
 qdrant-client
-sentence-transformers   # optional (small model)
+sentence-transformers
+pydantic
+transformers
+torch
