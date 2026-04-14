@@ -1,79 +1,43 @@
 version: "3.9"
 
 services:
+
   qdrant:
     image: qdrant/qdrant
     ports:
       - "6333:6333"
-    volumes:
-      - ./qdrant_storage:/qdrant/storage
+    restart: always
 
-  visual_service:
-    build: ./services/visual_indexing_service
-    ports:
-      - "8003:8003"
-    environment:
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
-    volumes:
-      - ./data:/app/data
-    depends_on:
-      - qdrant
-
-  text_service:
+  text_indexing_service:
     build: ./services/text_indexing_service
     ports:
-      - "8002:8002"
-    environment:
-      - QDRANT_URL=http://qdrant:6333
+      - "8002:8000"
     depends_on:
       - qdrant
 
   ingestion_service:
     build: ./services/ingestion_service
     ports:
-      - "8001:8001"
-    environment:
-      - TEXT_SERVICE_URL=http://text_service:8002/embed
-      - VISUAL_SERVICE_URL=http://visual_service:8003/embed-images
-    volumes:
-      - ./data:/app/data
+      - "8001:8000"
     depends_on:
-      - text_service
-      - visual_service
+      - text_indexing_service
 
   retrieval_service:
     build: ./services/retrieval_service
     ports:
-      - "8004:8004"
-    environment:
-      - QDRANT_URL=http://qdrant:6333
+      - "8004:8000"
     depends_on:
       - qdrant
 
   generation_service:
     build: ./services/generation_service
     ports:
-      - "8005:8005"
-    environment:
-      - MODEL_CACHE_DIR=/models
-    volumes:
-      - ./models_cache:/models
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+      - "8005:8000"
 
   api_gateway:
     build: ./services/api_gateway
     ports:
-      - "8000:8000"
-    environment:
-      - RETRIEVAL_URL=http://retrieval_service:8004/query
-      - GENERATION_URL=http://generation_service:8005/generate
+      - "8006:8000"
     depends_on:
       - retrieval_service
       - generation_service
