@@ -3,9 +3,8 @@ import requests
 
 app = FastAPI()
 
-RETRIEVAL_URL = "http://localhost:8004/query"
-GENERATION_URL = "http://localhost:8005/generate"
-
+RETRIEVAL_URL = "http://retrieval_service:8000/query"
+GENERATION_URL = "http://generation_service:8000/generate"
 
 @app.post("/ask")
 def ask_question(request: dict):
