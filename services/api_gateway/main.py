@@ -3,18 +3,40 @@ import requests
 
 app = FastAPI()
 
-import os
+RETRIEVAL_URL = "http://localhost:8004/query"
+GENERATION_URL = "http://localhost:8005/generate"
 
-RETRIEVAL_URL = os.getenv("RETRIEVAL_URL", "http://localhost:8004/query")
-GENERATION_URL = os.getenv("GENERATION_URL", "http://localhost:8005/generate")
 
 @app.post("/ask")
-def ask_question(query: str):
-    # 1. Retrieve evidence
-    retrieval_resp = requests.post(RETRIEVAL_URL, json={"query": query, "top_k": 5}).json()
-    text_chunks = retrieval_resp.get("results", [])
+def ask_question(request: dict):
 
-    # 2. Send to generation
-    gen_resp = requests.post(GENERATION_URL, json={"query": query, "text_chunks": text_chunks}).json()
+    query = request["query"]
 
-    return {"answer": gen_resp["answer"]}
+    # --- STEP 1: Retrieve ---
+    retrieval_response = requests.post(
+        RETRIEVAL_URL,
+        json={"query": query, "top_k": 3}
+    )
+
+    if retrieval_response.status_code != 200:
+        return {"error": "Retrieval failed"}
+
+    text_chunks = retrieval_response.json()["results"]
+
+    # --- STEP 2: Generate ---
+    generation_response = requests.post(
+        GENERATION_URL,
+        json={
+            "query": query,
+            "text_chunks": text_chunks
+        }
+    )
+
+    if generation_response.status_code != 200:
+        return {"error": "Generation failed"}
+
+    return {
+        "query": query,
+        "answer": generation_response.json()["answer"],
+        "sources": text_chunks
+    }

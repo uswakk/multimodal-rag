@@ -1,11 +1,9 @@
-FROM python:3.10
+FROM python:3.10-slim
 
 WORKDIR /app
 
 COPY . .
 
-RUN pip install --no-cache-dir fastapi uvicorn torch torchvision pillow transformers qdrant-client numpy
+RUN pip install --no-cache-dir -r requirements.txt
 
-EXPOSE 8003
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8003"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
