@@ -1,0 +1,13 @@
+fastapi 
+uvicorn 
+qdrant-client         
+sentence-transformers 
+pillow 
+pymupdf
+pytesseract 
+transformers 
+torch
+python-multipart      
+requests 
+torchvision
+accelerate
