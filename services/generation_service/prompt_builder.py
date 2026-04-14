@@ -1,28 +1,39 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM
-import torch
+from typing import List, Dict, Any
 
-MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"
 
-tokenizer = AutoTokenizer.from_pretrained(
-    MODEL_NAME,
-    cache_dir="Z:/models"
-)
+def build_prompt(query: str, text_chunks: List[Dict[str, Any]]) -> str:
+    """
+    Builds a clean prompt for the LLM using retrieved context + user query.
+    This is PURE string processing (no model loading).
+    """
 
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    cache_dir="Z:/models",
-    torch_dtype=torch.float32,
-    low_cpu_mem_usage=True,
-    use_safetensors=True
-).to("cpu")
+    # -----------------------------
+    # 1. Format context chunks
+    # -----------------------------
+    context = ""
 
-def generate_answer(prompt: str):
+    for i, chunk in enumerate(text_chunks):
+        # Expecting chunk like: {"text": "...", "source": "..."}
+        chunk_text = chunk.get("text", "")
 
-    inputs = tokenizer(prompt, return_tensors="pt")
+        context += f"[Chunk {i+1}]\n{chunk_text}\n\n"
 
-    outputs = model.generate(
-        **inputs,
-        max_new_tokens=100
-    )
+    # -----------------------------
+    # 2. Build final prompt
+    # -----------------------------
+    prompt = f"""
+You are a helpful AI assistant.
 
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+Use the following context to answer the question.
+If the answer is not in the context, say you don't know.
+
+---------------- CONTEXT ----------------
+{context}
+----------------------------------------
+
+Question: {query}
+
+Answer clearly and concisely:
+""".strip()
+
+    return prompt
