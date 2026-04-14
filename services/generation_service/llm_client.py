@@ -12,7 +12,7 @@ print("Loading tokenizer...")
 tokenizer = AutoTokenizer.from_pretrained(
     MODEL_NAME,
     cache_dir="Z:/models",
-    token=HF_TOKEN
+
 )
 
 print("Loading model (this may take some time)...")
@@ -22,7 +22,7 @@ model = AutoModelForCausalLM.from_pretrained(
     torch_dtype=torch.float32,
     low_cpu_mem_usage=True,
     use_safetensors=True,
-    token=HF_TOKEN
+  
 ).to("cpu")
 
 print("Model loaded successfully!")
