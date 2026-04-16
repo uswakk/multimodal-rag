@@ -5,8 +5,8 @@ qdrant-client
 
 sentence-transformers
 transformers
-torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu
-torchvision
+torch==2.2.2+cpu --extra-index-url https://download.pytorch.org/whl/cpu
+torchvision==0.17.2+cpu
 
 numpy
 huggingface_hub
