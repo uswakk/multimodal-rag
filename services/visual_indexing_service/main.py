@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List
 from image_embedder import embed_images
-from qdrant_client import upload_embeddings, create_collection
+from qdrant_database import upload_embeddings, create_collection
 
 app = FastAPI()
 

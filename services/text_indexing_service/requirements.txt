@@ -2,6 +2,16 @@ numpy==1.26.4
 fastapi
 uvicorn
 qdrant-client
+
+
+# Fix HF compatibility
+huggingface-hub==0.23.0
+
+transformers
 sentence-transformers==2.2.2
-huggingface-hub==0.16.4
-torch==2.2.2+cpu --extra-index-url https://download.pytorch.org/whl/cpu
+
+# CPU-only torch (IMPORTANT)
+torch==2.2.2+cpu
+torchvision==0.17.2+cpu
+
+--extra-index-url https://download.pytorch.org/whl/cpu
