@@ -1,6 +1,6 @@
 import requests
 
-OLLAMA_URL = "http://host.docker.internal:11434"
+OLLAMA_URL = "http://host.docker.internal:11434/api/generate"
 MODEL_NAME = "qwen3-vl:2b"
 
 def generate_answer(prompt: str):
@@ -14,6 +14,7 @@ def generate_answer(prompt: str):
     )
 
     if response.status_code != 200:
-        raise Exception(response.text)
+        raise Exception(f"HTTP {response.status_code}: {response.text}")
 
-    return response.json()["response"]
+    result = response.json()
+    return result.get("response", "No response generated")
