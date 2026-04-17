@@ -8,8 +8,8 @@ app = FastAPI()
 UPLOAD_DIR = "data/raw_pdfs"
 IMAGE_DIR = "data/images"
 
-TEXT_SERVICE_URL = os.getenv("TEXT_SERVICE_URL", "http://text_service:8002/embed")
-VISUAL_SERVICE_URL = os.getenv("VISUAL_SERVICE_URL", "http://visual_service:8003/embed-images")
+TEXT_SERVICE_URL = os.getenv("TEXT_SERVICE_URL", "http://text_indexing_service:8000/embed")
+VISUAL_SERVICE_URL = os.getenv("VISUAL_SERVICE_URL", "http://visual_indexing_service:8000/embed-images")
  
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(IMAGE_DIR, exist_ok=True)
