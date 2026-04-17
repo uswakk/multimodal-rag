@@ -12,6 +12,10 @@ services:
       - "8002:8000"
     depends_on:
       - qdrant
+    environment:
+      - QDRANT_URL=http://qdrant:6333        
+    volumes:
+      - ./data:/app/data
 
   visual_indexing_service:
     build: ./services/visual_indexing_service
@@ -19,6 +23,11 @@ services:
       - "8003:8000"
     depends_on:
       - qdrant
+    environment:
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+    volumes:
+      - ./data:/app/data
 
   ingestion_service:
     build: ./services/ingestion_service
@@ -27,11 +36,16 @@ services:
     depends_on:
       - text_indexing_service
       - visual_indexing_service
+    volumes:
+      - ./data:/app/data
 
   retrieval_service:
     build: ./services/retrieval_service
     ports:
       - "8004:8000"
+    environment:
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
     depends_on:
       - qdrant
 

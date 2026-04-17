@@ -5,12 +5,14 @@ from pdf_parser import extract_pdf_data
 
 app = FastAPI()
 
-UPLOAD_DIR = "data/raw_pdfs"
-IMAGE_DIR = "data/images"
+# Use absolute paths that match Docker volume mount
+UPLOAD_DIR = "/app/data/raw_pdfs"
+IMAGE_DIR = "/app/data/images"
 
 TEXT_SERVICE_URL = os.getenv("TEXT_SERVICE_URL", "http://text_indexing_service:8000/embed")
 VISUAL_SERVICE_URL = os.getenv("VISUAL_SERVICE_URL", "http://visual_indexing_service:8000/embed-images")
- 
+
+# Create directories if they don't exist
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(IMAGE_DIR, exist_ok=True)
 
