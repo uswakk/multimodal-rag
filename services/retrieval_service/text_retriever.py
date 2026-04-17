@@ -1,10 +1,21 @@
 from qdrant_client import QdrantClient
 from sentence_transformers import SentenceTransformer
-
 import os
+import time
 
-client = QdrantClient(url=os.getenv("QDRANT_URL", "http://localhost:6333"))
+def get_client(retries: int = 10, delay: float = 1.0):
+    for attempt in range(1, retries + 1):
+        try:
+            client = QdrantClient(url=os.getenv("QDRANT_URL", "http://localhost:6333"))
+            client.get_collections()
+            return client
+        except Exception as exc:
+            if attempt == retries:
+                raise
+            print(f"Qdrant connection attempt {attempt}/{retries} failed: {exc}")
+            time.sleep(delay)
 
+client = get_client()
 model = SentenceTransformer("BAAI/bge-small-en-v1.5")
 
 COLLECTION_NAME = "documents"
