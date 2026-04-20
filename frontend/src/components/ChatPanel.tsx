@@ -4,9 +4,12 @@ import './ChatPanel.css';
 const API_GATEWAY_URL = 'http://localhost:8006/ask';
 
 interface Source {
-  text?: string;
-  score?: number;
+  source?: string;
+  page?: number;
+  // legacy shape from retrieval path
   metadata?: { page?: number; source?: string; chunk_id?: string };
+  score?: number;
+  text?: string;
 }
 
 interface Message {
@@ -161,9 +164,11 @@ const ChatPanel: React.FC = () => {
                       <span className="sources-label">Sources</span>
                       <div className="sources-list">
                         {msg.sources.map((src, i) => {
-                          const page = src.metadata?.page;
-                          const source = src.metadata?.source ?? `chunk-${i + 1}`;
-                          const label = page !== undefined ? `${source} · p.${page}` : source;
+                          // Generation service returns {source, page}
+                          // Retrieval service returns {metadata: {source, page}}
+                          const page = src.page ?? src.metadata?.page;
+                          const sourceName = src.source ?? src.metadata?.source ?? `chunk-${i + 1}`;
+                          const label = page !== undefined ? `${sourceName} · p.${page}` : sourceName;
                           return (
                             <span key={i} className="source-tag">{label}</span>
                           );

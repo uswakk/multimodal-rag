@@ -69,13 +69,26 @@ const UploadSidebar: React.FC<UploadSidebarProps> = ({ onDocumentUploaded }) => 
       }
       const data = await res.json();
 
-      if (data.status === 'success' || data.status === 'partial_failure') {
+      if (data.status === 'success') {
+        // Full success
         const msg = `✓ Processed ${data.pages_processed ?? '?'} pages, ${data.total_chunks ?? '?'} chunks, ${data.images_saved ?? 0} images.`;
         setStatusMsg({ type: 'success', text: msg });
         setHistory(h => [{ filename: file.name, status: 'ok', chunks: data.total_chunks, pages: data.pages_processed }, ...h].slice(0, 10));
         onDocumentUploaded?.();
+      } else if (data.status === 'partial_failure') {
+        // PDF parsed correctly but one of the embedding services had issues — still usable
+        const errSummary = (data.errors as string[] ?? []).join(' | ');
+        const msg = `⚠ Partial: ${data.pages_processed}p / ${data.total_chunks}c ingested. Warning: ${errSummary}`;
+        setStatusMsg({ type: 'success', text: msg });
+        setHistory(h => [{ filename: file.name, status: 'ok', chunks: data.total_chunks, pages: data.pages_processed }, ...h].slice(0, 10));
+        onDocumentUploaded?.();
+      } else if (data.status === 'failure') {
+        // All embedding services failed — data.errors is an array
+        const errSummary = (data.errors as string[] ?? ['All services failed']).join('\n');
+        throw new Error(`Embedding failed:\n${errSummary}`);
       } else {
-        throw new Error(data.error ?? 'Unknown error from server.');
+        // Unhandled exception in the server — data.error is a string
+        throw new Error(data.error ?? data.message ?? 'Unknown error from server.');
       }
     } catch (err: unknown) {
       clearInterval(ticker);
