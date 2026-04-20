@@ -19,7 +19,7 @@ def ask_question(request: dict):
     retrieval_start = time.time()
     retrieval_response = requests.post(
         RETRIEVAL_URL,
-        json={"query": query, "top_k": 3}
+        json={"query": query, "top_k": 2}
     )
     retrieval_time = time.time() - retrieval_start
     print(f"[API Gateway] Retrieval completed in {retrieval_time:.2f}s")
