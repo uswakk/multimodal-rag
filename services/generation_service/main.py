@@ -18,6 +18,19 @@ def generate(request: QueryRequest):
 
     answer = generate_answer(prompt)
 
+    # Extract unique sources from the text chunks
+    sources = []
+    seen = set()
+    for chunk in request.text_chunks:
+        source = chunk.get("source", "Unknown")
+        if source not in seen:
+            sources.append({
+                "source": source,
+                "page": chunk.get("page")
+            })
+            seen.add(source)
+
     return {
-        "answer": answer
+        "answer": answer,
+        "sources": sources
     }
