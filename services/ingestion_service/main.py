@@ -1,9 +1,18 @@
 from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import requests
 from pdf_parser import extract_pdf_data
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Use absolute paths that match Docker volume mount
 UPLOAD_DIR = "/app/data/raw_pdfs"

@@ -1,0 +1,262 @@
+/* ===================== Upload Section Header ===================== */
+.section-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 4px;
+  margin-bottom: 8px;
+}
+
+/* ===================== Upload Card ===================== */
+.upload-card {
+  border-radius: var(--radius-md);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+  transition: box-shadow var(--transition);
+}
+
+.upload-card:hover {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Dropzone */
+.dropzone {
+  padding: 28px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border: 2px dashed transparent;
+  border-radius: var(--radius-md);
+  transition: all var(--transition);
+  position: relative;
+}
+
+.dropzone.dragging {
+  border-color: var(--accent-1);
+  background: rgba(108, 99, 255, 0.08);
+}
+
+.dropzone input {
+  display: none;
+}
+
+.dropzone-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--gradient-subtle);
+  border: 1px solid var(--border-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  transition: transform var(--transition);
+}
+
+.dropzone:hover .dropzone-icon {
+  transform: translateY(-2px);
+}
+
+.dropzone-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dropzone-sub {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ===================== File Preview ===================== */
+.file-preview {
+  margin: 0 12px 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(108, 99, 255, 0.08);
+  border: 1px solid var(--border-glow);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-icon { font-size: 20px; flex-shrink: 0; }
+
+.file-info { flex: 1; min-width: 0; }
+
+.file-name {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-size {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.file-remove-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color var(--transition), background var(--transition);
+  line-height: 1;
+}
+
+.file-remove-btn:hover {
+  color: var(--error);
+  background: rgba(248, 113, 113, 0.1);
+}
+
+/* ===================== Upload Button ===================== */
+.upload-btn-wrap {
+  padding: 0 12px 14px;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--gradient-main);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  transition: opacity var(--transition), transform var(--transition), box-shadow var(--transition);
+  box-shadow: 0 4px 16px rgba(108, 99, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(108, 99, 255, 0.5);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===================== Progress Bar ===================== */
+.progress-wrap {
+  padding: 0 12px 14px;
+}
+
+.progress-bar {
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.07);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--gradient-main);
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+
+.progress-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* ===================== Status Banner ===================== */
+.status-banner {
+  margin: 0 12px 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  animation: slide-up 0.25s ease;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.status-banner.success {
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  color: var(--success);
+}
+
+.status-banner.error {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: var(--error);
+}
+
+.banner-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.banner-text { line-height: 1.5; }
+
+/* ===================== Upload History ===================== */
+.upload-history { display: flex; flex-direction: column; gap: 6px; }
+
+.history-item {
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-glass);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.history-filename {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-badge {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 99px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.history-badge.ok {
+  background: rgba(52, 211, 153, 0.12);
+  color: var(--success);
+}
+
+.history-badge.fail {
+  background: rgba(248, 113, 113, 0.1);
+  color: var(--error);
+}
