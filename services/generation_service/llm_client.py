@@ -1,6 +1,9 @@
+import os
 import requests
 
-OLLAMA_URL = "http://host.docker.internal:11434/api/generate"
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "localhost")
+OLLAMA_PORT = os.getenv("OLLAMA_PORT", "11434")
+OLLAMA_URL = f"http://{OLLAMA_HOST}:{OLLAMA_PORT}/api/generate"
 MODEL_NAME = "qwen3-vl:2b"
 
 def generate_answer(prompt: str):
@@ -9,7 +12,12 @@ def generate_answer(prompt: str):
         json={
             "model": MODEL_NAME,
             "prompt": prompt,
-            "stream": False
+            "stream": False,
+            "options": {
+                "num_ctx": 2048,
+                "num_predict": 1024,
+                "temperature": 0.3
+            }
         }
     )
 

@@ -5,22 +5,32 @@ services:
     ports:
       - "6333:6333"
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
   text_indexing_service:
     build: ./services/text_indexing_service
     ports:
       - "8002:8000"
+    restart: unless-stopped
     depends_on:
       - qdrant
     environment:
       - QDRANT_URL=http://qdrant:6333        
     volumes:
       - ./data:/app/data
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
 
   visual_indexing_service:
     build: ./services/visual_indexing_service
     ports:
       - "8003:8000"
+    restart: unless-stopped
     depends_on:
       - qdrant
     environment:
@@ -28,35 +38,60 @@ services:
       - QDRANT_PORT=6333
     volumes:
       - ./data:/app/data
+    deploy:
+      resources:
+        limits:
+          memory: 2G
 
   ingestion_service:
     build: ./services/ingestion_service
     ports:
       - "8001:8000"
+    restart: unless-stopped
     depends_on:
       - text_indexing_service
       - visual_indexing_service
     volumes:
       - ./data:/app/data
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   retrieval_service:
     build: ./services/retrieval_service
     ports:
       - "8004:8000"
+    restart: unless-stopped
     environment:
       - QDRANT_URL=http://qdrant:6333
     depends_on:
       - qdrant
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
 
   generation_service:
     build: ./services/generation_service
     ports:
       - "8005:8000"
+    environment:
+      - OLLAMA_HOST=host.docker.internal
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   api_gateway:
     build: ./services/api_gateway
     ports:
       - "8006:8000"
+    restart: unless-stopped
     depends_on:
       - retrieval_service
       - generation_service
+    deploy:
+      resources:
+        limits:
+          memory: 256M

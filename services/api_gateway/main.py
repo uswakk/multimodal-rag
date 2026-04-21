@@ -53,8 +53,14 @@ def ask_question(request: dict):
     print(f"[API Gateway] Generation completed in {generation_time:.2f}s")
 
     if generation_response.status_code != 200:
-        print(f"[API Gateway] Generation failed with status {generation_response.status_code}")
-        return {"error": "Generation failed"}
+        error_msg = "Generation failed"
+        try:
+            error_data = generation_response.json()
+            error_msg = error_data.get("error", error_msg)
+        except:
+            pass
+        print(f"[API Gateway] Generation failed with status {generation_response.status_code}: {error_msg}")
+        return {"error": error_msg}
 
     generation_data = generation_response.json()
 
