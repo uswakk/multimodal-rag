@@ -17,8 +17,9 @@ def get_client(retries: int = 10, delay: float = 1.0):
             time.sleep(delay)
 
 client = get_client()
-model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+# Upgraded from openai/clip-vit-base-patch32 (512-dim) to openai/clip-vit-large-patch14 (768-dim)
+model = CLIPModel.from_pretrained("openai/clip-vit-large-patch14")
+processor = CLIPProcessor.from_pretrained("openai/clip-vit-large-patch14")
 
 COLLECTION_NAME = "image_embeddings"
 
@@ -46,32 +47,6 @@ def search_images(query: str, top_k: int = 10):
         formatted.append({
             "type": "image",
             "score": float(r.score) * 0.7,  # ⚠️ downweight images
-            "image_path": r.payload.get("image_path"),
-            "page": r.payload.get("page"),
-            "source": r.payload.get("source")
-        })
-
-    return formatted
-
-    inputs = processor(text=[query], return_tensors="pt")
-
-    with torch.no_grad():
-        text_features = model.get_text_features(**inputs)
-
-    query_vector = text_features[0].cpu().numpy().tolist()
-
-    results = client.query_points(
-        collection_name=COLLECTION_NAME,
-        query=query_vector,
-        limit=top_k
-    )
-
-    formatted = []
-
-    for r in results.points:
-        formatted.append({
-            "type": "image",
-            "score": r.score,
             "image_path": r.payload.get("image_path"),
             "page": r.payload.get("page"),
             "source": r.payload.get("source")

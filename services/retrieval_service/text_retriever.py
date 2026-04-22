@@ -19,7 +19,8 @@ def get_client(retries=10, delay=1.0):
             time.sleep(delay)
 
 client = get_client()
-model = SentenceTransformer("BAAI/bge-small-en-v1.5")
+# Upgraded from BAAI/bge-small-en-v1.5 (384-dim) to BAAI/bge-base-en-v1.5 (768-dim)
+model = SentenceTransformer("BAAI/bge-base-en-v1.5")
 
 COLLECTION_NAME = "documents"
 
@@ -58,7 +59,9 @@ def is_valid_chunk(text: str):
     text = text.strip()
 
     if len(text) < 80:
-        return False
+        # allow shorter but meaningful chunks; reduce threshold
+        if len(text) < 40:
+            return False
 
     # Too many numbers → remove tables
     digit_ratio = sum(c.isdigit() for c in text) / len(text)

@@ -1,7 +1,8 @@
 from sentence_transformers import SentenceTransformer
 
 # Load model once (IMPORTANT)
-model = SentenceTransformer("BAAI/bge-small-en-v1.5")
+# Upgraded from BAAI/bge-small-en-v1.5 (384-dim) to BAAI/bge-base-en-v1.5 (768-dim)
+model = SentenceTransformer("BAAI/bge-base-en-v1.5")
 
 
 def embed_text(text_list):

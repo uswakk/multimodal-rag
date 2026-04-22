@@ -21,7 +21,7 @@ def get_client(retries: int = 10, delay: float = 1.0):
             time.sleep(delay)
 
 
-def create_collection(vector_size=512):
+def create_collection(vector_size=768):
     client = get_client()
     collections = client.get_collections().collections
 

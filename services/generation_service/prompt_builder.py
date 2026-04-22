@@ -20,8 +20,22 @@ def _is_generic_query(query: str) -> bool:
     q = (query or "").strip().lower()
     if not q:
         return True
-    # short queries are often underspecified
-    if len(q.split()) <= 3:
+    # If the query explicitly asks for a summary/findings, treat it as specific
+    non_generic_phrases = [
+        "key finding",
+        "key findings",
+        "findings",
+        "summary",
+        "summarize",
+        "main findings",
+        "key takeaways",
+    ]
+    for phrase in non_generic_phrases:
+        if phrase in q:
+            return False
+
+    # short queries are often underspecified; require <=2 words to be considered generic
+    if len(q.split()) <= 2:
         return True
     for phrase in GENERIC_QUERY_PHRASES:
         if phrase in q:

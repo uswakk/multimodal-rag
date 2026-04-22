@@ -28,7 +28,7 @@ def ask_question(request: dict):
     retrieval_start = time.time()
     retrieval_response = requests.post(
         RETRIEVAL_URL,
-        json={"query": query, "top_k": 2}
+        json={"query": query, "top_k": 5}
     )
     retrieval_time = time.time() - retrieval_start
     print(f"[API Gateway] Retrieval completed in {retrieval_time:.2f}s")
@@ -37,8 +37,10 @@ def ask_question(request: dict):
         print(f"[API Gateway] Retrieval failed with status {retrieval_response.status_code}")
         return {"error": "Retrieval failed"}
 
-    text_chunks = retrieval_response.json()["results"]
-    print(f"[API Gateway] Retrieved {len(text_chunks)} chunks")
+    resp_json = retrieval_response.json()
+    text_chunks = resp_json.get("results", [])
+    distinct_sources = set([c.get("source") for c in text_chunks if c.get("source")])
+    print(f"[API Gateway] Retrieved {len(text_chunks)} chunks from {len(distinct_sources)} distinct sources")
 
     # --- STEP 2: Generate ---
     generation_start = time.time()

@@ -16,7 +16,7 @@ def generate_answer(prompt: str):
             "options": {
                 "num_ctx": 2048,
                 "num_predict": 1024,
-                "temperature": 0.5
+                "temperature": 0.7
             }
         }
     )
