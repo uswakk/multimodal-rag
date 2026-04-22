@@ -72,7 +72,7 @@ def expand_query(query: str) -> str:
 # ----------------------------
 # 🔍 MAIN SEARCH
 # ----------------------------
-def search_text(query: str, top_k: int = 5):
+def search_text(query: str, top_k: int = 10):
 
     # Expand vague queries
     expanded_query = expand_query(query)

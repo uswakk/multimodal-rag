@@ -25,7 +25,7 @@ COLLECTION_NAME = "image_embeddings"
 # ⚠️ IMPORTANT CHANGE:
 # Normalize scores separately (don’t mix directly)
 
-def search_images(query: str, top_k: int = 5):
+def search_images(query: str, top_k: int = 10):
 
     inputs = processor(text=[query], return_tensors="pt")
 
