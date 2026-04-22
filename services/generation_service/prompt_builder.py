@@ -1,127 +1,132 @@
 from typing import List, Dict, Any
 
 
+CHAT_PHRASES = [
+    "hi", "hello", "hey", "how are you",
+    "good morning", "good evening"
+]
+
+
 GENERIC_QUERY_PHRASES = [
     "what is in this document",
-    "what is in this file",
     "what is this document",
-    "what is this file",
-    "what is in this",
-    "what does this document say",
-    "what does this file say",
-    "what's in this document",
-    "what's in this file",
+    "what does this say",
     "summarize",
-    "give me a summary",
+    "summary",
+    "overview",
 ]
+
+
+def _is_chat_query(query: str) -> bool:
+    q = (query or "").strip().lower()
+    return any(phrase in q for phrase in CHAT_PHRASES)
 
 
 def _is_generic_query(query: str) -> bool:
     q = (query or "").strip().lower()
+
     if not q:
         return True
-    # If the query explicitly asks for a summary/findings, treat it as specific
-    non_generic_phrases = [
-        "key finding",
-        "key findings",
-        "findings",
-        "summary",
-        "summarize",
-        "main findings",
-        "key takeaways",
-    ]
-    for phrase in non_generic_phrases:
-        if phrase in q:
-            return False
 
-    # short queries are often underspecified; require <=2 words to be considered generic
     if len(q.split()) <= 2:
         return True
+
     for phrase in GENERIC_QUERY_PHRASES:
         if phrase in q:
             return True
+
     return False
 
 
 def build_prompt(query: str, text_chunks: List[Dict[str, Any]], relevance_threshold: float = 0.25) -> str:
-    """
-    Builds a clean prompt for the LLM using retrieved context + user query.
-    Adds heuristics to handle vague/generic queries and low-relevance retrievals.
-    """
 
     # -----------------------------
-    # 1. Format context chunks with source information
+    # 1. Format context
     # -----------------------------
     context = ""
-    max_score = None
+    max_score = 0
 
     for i, chunk in enumerate(text_chunks):
-        # Expecting chunk like: {"text": "...", "source": "...", "page": "...", "score": 0.8}
         chunk_text = chunk.get("text", "")
-        source = chunk.get("source", "Unknown source")
+        source = chunk.get("source", "Unknown")
         page = chunk.get("page")
-        score = chunk.get("score")
+        score = float(chunk.get("score", 0))
 
-        if score is not None:
-            try:
-                s = float(score)
-                max_score = s if (max_score is None or s > max_score) else max_score
-            except Exception:
-                pass
+        max_score = max(max_score, score)
 
-        source_info = f"[Source: {source}"
-        if page is not None:
-            source_info += f", Page: {page}"
-        if score is not None:
-            try:
-                source_info += f", Score: {float(score):.3f}"
-            except Exception:
-                pass
-        source_info += "]"
+        context += f"""
+[Chunk {i+1}]
+Source: {source} | Page: {page} | Score: {score:.2f}
+{chunk_text}
+""".strip() + "\n\n"
 
-        context += f"[Chunk {i+1}] {source_info}\n{chunk_text}\n\n"
+    has_context = len(context.strip()) > 0
+    low_relevance = max_score < relevance_threshold
 
     # -----------------------------
-    # 2. Decide prompt style based on query and retrieved relevance
+    # CASE 1: Chat / Greeting
     # -----------------------------
-    is_generic = _is_generic_query(query)
-    low_relevance = (max_score is not None and max_score < relevance_threshold)
+    if _is_chat_query(query):
+        return f"""
+You are a friendly AI assistant.
 
-    if is_generic:
-        # Summarization-style prompt for document-level questions
-        prompt = f"""
+The user said: "{query}"
+
+Respond naturally and conversationally.
+Do not mention documents or context.
+""".strip()
+
+    # -----------------------------
+    # CASE 2: Generic query → summary
+    # -----------------------------
+    if _is_generic_query(query) and has_context:
+        return f"""
 You are a helpful AI assistant.
 
-The user asked a broad/generic question about a document and likely expects a high-level summary.
-Using ONLY the context below, produce a concise summary (3-8 bullet points) of the content. Do not hallucinate. If the context is insufficient to summarize, state "I don't know based on the provided context." When summarizing, cite the source(s) used for each bullet if available.
+The user is asking for a general understanding.
+
+Using the context below:
+- Provide a concise summary (5–8 bullet points)
+- Focus on key ideas
+- Use context primarily, but you may fill small gaps with general knowledge
 
 ---------------- CONTEXT ----------------
 {context}
 ----------------------------------------
-
-Task: Summarize the document(s) above clearly and concisely. Include source citations.
 """.strip()
 
-        return prompt
-
-    # If not generic but retrieval seems low-quality, ask for clarification rather than guessing
-    if low_relevance and (not context.strip()):
-        prompt = f"""
+    # -----------------------------
+    # CASE 3: Weak retrieval
+    # -----------------------------
+    if not has_context or low_relevance:
+        return f"""
 You are a helpful AI assistant.
 
-The user asked: {query}
+User question:
+"{query}"
 
-You do not have enough relevant context to answer this question. Do not guess. Ask the user a clarifying question to better understand what they want (for example: do you want a summary, specific facts, or a page reference?). Keep the clarifying question short.
+The provided context is insufficient or not very relevant.
+
+You may:
+- Answer using general knowledge if possible
+- OR ask a short clarifying question
+
+Do not hallucinate specific details.
 """.strip()
 
-        return prompt
-
-    # Default: standard QA prompt with clear directives
-    prompt = f"""
+    # -----------------------------
+    # CASE 4: Normal QA (best case)
+    # -----------------------------
+    return f"""
 You are a helpful AI assistant.
 
-Use the following context to answer the question.
-Use only information present in the context. If the answer is not in the context, say "I don't know based on the provided context." When answering, cite the source(s) you used.
+Answer the question using the context below.
+
+Guidelines:
+- Use context as the primary source
+- You may use general knowledge to improve clarity
+- If unsure, say "I don't know based on the provided context"
+- Keep answers clear and concise
 
 ---------------- CONTEXT ----------------
 {context}
@@ -129,7 +134,5 @@ Use only information present in the context. If the answer is not in the context
 
 Question: {query}
 
-Answer clearly and concisely, citing your sources:
+Answer:
 """.strip()
-
-    return prompt
