@@ -22,7 +22,36 @@ processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 COLLECTION_NAME = "image_embeddings"
 
+# ⚠️ IMPORTANT CHANGE:
+# Normalize scores separately (don’t mix directly)
+
 def search_images(query: str, top_k: int = 5):
+
+    inputs = processor(text=[query], return_tensors="pt")
+
+    with torch.no_grad():
+        text_features = model.get_text_features(**inputs)
+
+    query_vector = text_features[0].cpu().numpy().tolist()
+
+    results = client.query_points(
+        collection_name=COLLECTION_NAME,
+        query=query_vector,
+        limit=top_k
+    )
+
+    formatted = []
+
+    for r in results.points:
+        formatted.append({
+            "type": "image",
+            "score": float(r.score) * 0.7,  # ⚠️ downweight images
+            "image_path": r.payload.get("image_path"),
+            "page": r.payload.get("page"),
+            "source": r.payload.get("source")
+        })
+
+    return formatted
 
     inputs = processor(text=[query], return_tensors="pt")
 
