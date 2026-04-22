@@ -10,7 +10,7 @@ app = FastAPI()
 
 class QueryRequest(BaseModel):
     query: str
-    top_k: int = 5
+    top_k: int = 10
 
 @app.post("/query")
 def query(request: QueryRequest):
