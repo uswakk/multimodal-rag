@@ -20,7 +20,7 @@ def get_client(retries=10, delay=1.0):
 
 client = get_client()
 # Upgraded from BAAI/bge-small-en-v1.5 (384-dim) to BAAI/bge-base-en-v1.5 (768-dim)
-model = SentenceTransformer("BAAI/bge-base-en-v1.5")
+model = SentenceTransformer("BAAI/bge-small-en-v1.5")
 
 COLLECTION_NAME = "documents"
 
@@ -57,25 +57,16 @@ def expand_query(query: str, intent: str):
 # ----------------------------
 def is_valid_chunk(text: str):
     text = text.strip()
-
-    if len(text) < 80:
-        # allow shorter but meaningful chunks; reduce threshold
-        if len(text) < 40:
-            return False
-
-    # Too many numbers → remove tables
+    if len(text) < 30:          # was 40 — only kill truly empty fragments
+        return False
     digit_ratio = sum(c.isdigit() for c in text) / len(text)
-    if digit_ratio > 0.25:
+    if digit_ratio > 0.35:      # was 0.25 — a bit more tolerant
         return False
-
-    # Remove figure captions
-    if "figure" in text.lower():
+    # Only reject if it's purely a figure caption, not just mentions "figure"
+    if re.match(r"^(figure|fig\.)\s*\d+", text.lower()):
         return False
-
-    # Remove references
-    if "doi" in text.lower() or "arxiv" in text.lower():
+    if "doi:" in text.lower() or "arxiv:" in text.lower():
         return False
-
     return True
 
 

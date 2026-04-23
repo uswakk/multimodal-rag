@@ -7,36 +7,38 @@ CHAT_PHRASES = [
 ]
 
 
+
 GENERIC_QUERY_PHRASES = [
     "what is in this document",
     "what is this document",
     "what does this say",
-    "summarize",
-    "summary",
-    "overview",
+    "summarize this",
+    "give me a summary",
+    "overview of this",
 ]
 
+GENERIC_QUERY_PHRASES = [
+    "what is in this document",
+    "what is this document",
+    "what does this say",
+    "summarize this",
+    "give me a summary",
+    "overview of this",
+]
+
+def _is_generic_query(query: str) -> bool:
+    q = (query or "").strip().lower()
+    if not q:
+        return True
+    # Don't treat short factual questions as generic
+    for phrase in GENERIC_QUERY_PHRASES:
+        if phrase in q:
+            return True
+    return False
 
 def _is_chat_query(query: str) -> bool:
     q = (query or "").strip().lower()
     return any(phrase in q for phrase in CHAT_PHRASES)
-
-
-def _is_generic_query(query: str) -> bool:
-    q = (query or "").strip().lower()
-
-    if not q:
-        return True
-
-    if len(q.split()) <= 2:
-        return True
-
-    for phrase in GENERIC_QUERY_PHRASES:
-        if phrase in q:
-            return True
-
-    return False
-
 
 def build_prompt(query: str, text_chunks: List[Dict[str, Any]], relevance_threshold: float = 0.25) -> str:
 
@@ -100,19 +102,13 @@ Using the context below:
     # -----------------------------
     if not has_context or low_relevance:
         return f"""
-You are a helpful AI assistant.
+        You are a knowledgeable AI assistant.
 
-User question:
-"{query}"
+        The user asked: "{query}"
 
-The provided context is insufficient or not very relevant.
-
-You may:
-- Answer using general knowledge if possible
-- OR ask a short clarifying question
-
-Do not hallucinate specific details.
-""".strip()
+        No relevant document context was found. Answer using your general knowledge.
+        Be concise and factual. Do not mention documents or context.
+        """.strip()
 
     # -----------------------------
     # CASE 4: Normal QA (best case)

@@ -3,9 +3,9 @@ from transformers import CLIPProcessor, CLIPModel
 import torch
 
 # Load once (global)
-# Upgraded from openai/clip-vit-base-patch32 (512-dim) to openai/clip-vit-large-patch14 (768-dim)
-model = CLIPModel.from_pretrained("openai/clip-vit-large-patch14")
-processor = CLIPProcessor.from_pretrained("openai/clip-vit-large-patch14")
+# Using openai/clip-vit-base-patch32 — outputs 512-dim vectors via visual_projection
+model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 def embed_images(image_paths):
     embeddings = []

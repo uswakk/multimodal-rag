@@ -17,6 +17,7 @@ COPY requirements.txt .
 
 # Install dependencies (CPU ONLY)
 RUN pip install --no-cache-dir --default-timeout=1000 -r requirements.txt
+# Pre-bake models into the image at build time
 
 # Copy rest of code
 COPY . .

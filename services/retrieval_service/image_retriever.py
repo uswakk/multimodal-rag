@@ -17,9 +17,9 @@ def get_client(retries: int = 10, delay: float = 1.0):
             time.sleep(delay)
 
 client = get_client()
-# Upgraded from openai/clip-vit-base-patch32 (512-dim) to openai/clip-vit-large-patch14 (768-dim)
-model = CLIPModel.from_pretrained("openai/clip-vit-large-patch14")
-processor = CLIPProcessor.from_pretrained("openai/clip-vit-large-patch14")
+# Using openai/clip-vit-base-patch32 — outputs 512-dim vectors (matches image_embeddings collection)
+model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 COLLECTION_NAME = "image_embeddings"
 

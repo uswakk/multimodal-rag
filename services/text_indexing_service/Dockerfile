@@ -14,8 +14,8 @@ RUN apt-get update && apt-get install -y \
 
 # Copy requirements first (for caching)
 COPY requirements.txt .
+# Pre-bake models into the image at build time
 
-# Install dependencies (CPU ONLY)
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy rest of code

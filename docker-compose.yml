@@ -18,9 +18,13 @@ services:
     depends_on:
       - qdrant
     environment:
-      - QDRANT_URL=http://qdrant:6333        
+      - QDRANT_URL=http://qdrant:6333
+      - HF_HOME=/root/.cache/huggingface
+      - HF_ENDPOINT=https://hf-mirror.com
+      - HF_HUB_DOWNLOAD_TIMEOUT=300
     volumes:
       - ./data:/app/data
+      - huggingface_cache:/root/.cache/huggingface
     deploy:
       resources:
         limits:
@@ -36,8 +40,12 @@ services:
     environment:
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
+      - HF_HOME=/root/.cache/huggingface
+      - HF_ENDPOINT=https://hf-mirror.com
+      - HF_HUB_DOWNLOAD_TIMEOUT=300
     volumes:
       - ./data:/app/data
+      - huggingface_cache:/root/.cache/huggingface
     deploy:
       resources:
         limits:
@@ -65,8 +73,13 @@ services:
     restart: unless-stopped
     environment:
       - QDRANT_URL=http://qdrant:6333
+      - HF_HOME=/root/.cache/huggingface
+      - HF_ENDPOINT=https://hf-mirror.com
+      - HF_HUB_DOWNLOAD_TIMEOUT=300
     depends_on:
       - qdrant
+    volumes:
+      - huggingface_cache:/root/.cache/huggingface
     deploy:
       resources:
         limits:
@@ -95,3 +108,6 @@ services:
       resources:
         limits:
           memory: 256M
+
+volumes:
+  huggingface_cache:
