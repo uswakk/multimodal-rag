@@ -16,6 +16,7 @@ app.add_middleware(
 RETRIEVAL_URL = "http://retrieval_service:8000/query"
 GENERATION_URL = "http://generation_service:8000/generate"
 
+
 @app.post("/ask")
 def ask_question(request: dict):
 
@@ -38,9 +39,17 @@ def ask_question(request: dict):
         return {"error": "Retrieval failed"}
 
     resp_json = retrieval_response.json()
-    text_chunks = resp_json.get("results", [])
-    distinct_sources = set([c.get("source") for c in text_chunks if c.get("source")])
-    print(f"[API Gateway] Retrieved {len(text_chunks)} chunks from {len(distinct_sources)} distinct sources")
+    all_results = resp_json.get("results", [])
+
+    # Split results by type
+    text_chunks = [r for r in all_results if r.get("type") == "text"]
+    image_chunks = [r for r in all_results if r.get("type") == "image"]
+
+    distinct_sources = set(
+        c.get("source") for c in all_results if c.get("source")
+    )
+    print(f"[API Gateway] Retrieved {len(text_chunks)} text chunks and "
+          f"{len(image_chunks)} image chunks from {len(distinct_sources)} distinct sources")
 
     # --- STEP 2: Generate ---
     generation_start = time.time()
@@ -48,7 +57,8 @@ def ask_question(request: dict):
         GENERATION_URL,
         json={
             "query": query,
-            "text_chunks": text_chunks
+            "text_chunks": text_chunks,
+            "image_chunks": image_chunks
         }
     )
     generation_time = time.time() - generation_start
@@ -72,5 +82,9 @@ def ask_question(request: dict):
     return {
         "query": query,
         "answer": generation_data.get("answer"),
-        "sources": generation_data.get("sources", [])
+        "sources": generation_data.get("sources", []),
+        "image_sources": [
+            {"source": c.get("source"), "page": c.get("page"), "image_path": c.get("image_path")}
+            for c in image_chunks
+        ]
     }
